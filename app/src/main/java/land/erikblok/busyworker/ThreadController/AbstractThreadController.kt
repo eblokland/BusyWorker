@@ -63,6 +63,8 @@ abstract class AbstractThreadController(ctx: Context) {
             }
         }
         threadList.clear()
+        stopCallback?.invoke()
+        stopCallback = null
     }
 
     fun stopThreads() {
@@ -70,8 +72,6 @@ abstract class AbstractThreadController(ctx: Context) {
             wakeLock.release()
         }
         cleanUpThreads()
-        stopCallback?.invoke()
-        stopCallback = null
         isActive = false
     }
 }
