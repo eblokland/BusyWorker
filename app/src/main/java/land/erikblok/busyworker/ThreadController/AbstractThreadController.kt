@@ -29,6 +29,8 @@ abstract class AbstractThreadController(ctx: Context) {
     val timer: Timer = Timer()
     val wakeLock: PowerManager.WakeLock?
     val handler: Handler
+    var stopCallback: (() -> Unit)? = null
+    var isActive = false
 
     init {
         handler = Handler(ctx.mainLooper, object : Handler.Callback {
@@ -49,6 +51,11 @@ abstract class AbstractThreadController(ctx: Context) {
         }
     }
 
+    protected fun startThreads(stopCallback: (() -> Unit)?) {
+        this.stopCallback = stopCallback
+        isActive = true
+    }
+
     fun cleanUpThreads() {
         threadList.forEach {
             if (it.isAlive) {
@@ -63,5 +70,8 @@ abstract class AbstractThreadController(ctx: Context) {
             wakeLock.release()
         }
         cleanUpThreads()
+        stopCallback?.invoke()
+        stopCallback = null
+        isActive = false
     }
 }

@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         tc = BusyThreadController(this)
         rtc = RandomThreadController(this)
+
         setContent {
             BusyWorkerTheme {
                 // A surface container using the 'background' color from the theme
@@ -104,8 +105,10 @@ fun FloatTextField(
 
 @Composable
 fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
+    var threadsRunning by remember {mutableStateOf(tc?.isActive ?: false)}
     fun startThreads(duration: Int, numThreads: Int, workerId: Int) {
-        tc?.startThreads(numThreads, duration, workerId)
+        threadsRunning = true
+        tc?.startThreads(numThreads, duration, workerId, stopCallback = { threadsRunning = false })
     }
     Column {
         var numThreads by remember { mutableStateOf<Int>(1) }
@@ -113,7 +116,7 @@ fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
         var threadsValid by remember { mutableStateOf(false) }
         var runtimeValid by remember { mutableStateOf(true) }
         val startWorkerWithId: (Int) -> Unit =
-            { workerId: Int -> startThreads(currentRuntime * 1000, numThreads.toInt(), workerId) }
+            { workerId: Int -> startThreads(currentRuntime * 1000, numThreads, workerId) }
 
         IntegerTextField(
             isValid = threadsValid,
@@ -138,13 +141,13 @@ fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
         Row {
             Button(
                 onClick = { startWorkerWithId(0) },
-                enabled = threadsValid && runtimeValid,
+                enabled = threadsValid && runtimeValid && !threadsRunning,
                 content = { Text("Start threads 0") },
             )
             Spacer(modifier = Modifier.width(5.dp))
             Button(
                 onClick = { startWorkerWithId(1) },
-                enabled = threadsValid && runtimeValid,
+                enabled = threadsValid && runtimeValid && !threadsRunning,
                 content = { Text("Start threads 1") },
             )
         }
@@ -162,11 +165,12 @@ fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
 
 @Composable
 fun RandomThreadStartComponents(rtc: RandomThreadController? = null) {
-    var runtime by remember { mutableStateOf<Int>(1) }
-    var pauseProb by remember { mutableStateOf<Float>(0.5f) }
+    var randomRunning by remember { mutableStateOf(rtc?.isActive ?: false) }
+    var runtime by remember { mutableStateOf(1) }
+    var pauseProb by remember { mutableStateOf(0.5f) }
     var runtimeValid by remember { mutableStateOf(false) }
     var pauseProbValid by remember { mutableStateOf(false) }
-    var timestep by remember { mutableStateOf<Int>(100) }
+    var timestep by remember { mutableStateOf(100) }
     var timestepValid by remember { mutableStateOf(false) }
 
     IntegerTextField(isValid = runtimeValid, onValueChange = { time ->
@@ -200,10 +204,11 @@ fun RandomThreadStartComponents(rtc: RandomThreadController? = null) {
             rtc?.startThreads(
                 timestep = timestep,
                 pauseProb = pauseProb,
-                runtime = runtime * 1000
+                runtime = runtime * 1000,
+                stopCallback = {randomRunning = false}
             )
         },
-        enabled = timestepValid && pauseProbValid && runtimeValid,
+        enabled = timestepValid && pauseProbValid && runtimeValid && !randomRunning,
         content = { Text("Start random workload") }
     )
     Spacer(modifier = Modifier.height(5.dp))

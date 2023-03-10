@@ -4,7 +4,7 @@ import android.content.Context
 
 
 class BusyThreadController(ctx: Context) : AbstractThreadController(ctx) {
-    fun startThreads(numThreads: Int, runtime: Int, workerId: Int = 0) {
+    fun startThreads(numThreads: Int, runtime: Int, workerId: Int = 0, stopCallback: (() -> Unit)? = null) {
         cleanUpThreads()
 
         for (i in 1..numThreads) {
@@ -16,7 +16,7 @@ class BusyThreadController(ctx: Context) : AbstractThreadController(ctx) {
             wakeLock?.acquire((runtime + 1000).toLong())
             handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, runtime.toLong())
         }
-
+        startThreads(stopCallback)
     }
 
 

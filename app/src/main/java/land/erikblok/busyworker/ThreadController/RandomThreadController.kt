@@ -7,12 +7,7 @@ import land.erikblok.busyworker.Worker.RandomWorker
 
 class RandomThreadController(ctx: Context) : AbstractThreadController(ctx){
 
-    fun workerToString(worker: AbstractWorker?): String{
-        return if (worker == null) "Pause" else (worker::class.simpleName ?: "unknown")
-    }
-
-
-    fun startThreads(timestep: Int, pauseProb: Float, runtime: Int){
+    fun startThreads(timestep: Int, pauseProb: Float, runtime: Int, stopCallback: (() -> Unit)? = null){
         cleanUpThreads()
         threadList.add(RandomWorker(timestep=timestep, pauseProb=pauseProb,runtime=runtime))
 
@@ -23,6 +18,7 @@ class RandomThreadController(ctx: Context) : AbstractThreadController(ctx){
             //handler will kill the thread if it doesn't self-exit in time
             handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime + 1000).toLong())
         }
+        startThreads(stopCallback)
     }
 
 
