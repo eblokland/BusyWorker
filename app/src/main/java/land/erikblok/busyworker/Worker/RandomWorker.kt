@@ -14,7 +14,7 @@ val RAND_TAG = "RANDOM_WORKER"
  *  timestep.
  *  @param runtime total runtime of the randomworker including pauses, in millis.
  */
-class RandomWorker(val timestep: Long, val runtime: Long, val pauseProb: Double) :
+class RandomWorker(val timestep: Int, val runtime: Int, val pauseProb: Float) :
     AbstractWorker() {
     @Volatile
     var stop: Boolean = false

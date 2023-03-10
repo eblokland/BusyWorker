@@ -6,30 +6,54 @@ package land.erikblok.busyworker
  * aren't actually doing anything different.  Since the workloads should be the same, this abstract class
  * will actually provide a basic workload.
  */
-abstract class AbstractWorkload(val runtime: Long) : Thread(){
-    open fun work() {
-        var meaningless: Long = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % 1000000 == 0L){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
-    }
+abstract class AbstractWorkload(val runtime: Int) : Thread(){
+    abstract fun work()
 
 }
 
 //these are all copies that HOPEFULLY won't get optimized
 
-class Workload1(runtime: Long) : AbstractWorkload(runtime)
-
-class Workload2(runtime: Long) : AbstractWorkload(runtime)
-
-class Workload3(runtime: Long) : AbstractWorkload(runtime)
-
-class SleepWorkload(runtime: Long) : AbstractWorkload(runtime){
+class Workload1(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        Thread.sleep(runtime)
+        var meaningless: Int = 0
+        val endTime = System.nanoTime() + (runtime * 1e6)
+        while (true) {
+            if(meaningless % 1000000 == 0){
+                if (System.nanoTime() > endTime) return
+            }
+            meaningless += 1
+        }
+    }
+}
+
+class Workload2(runtime: Int) : AbstractWorkload(runtime){
+    override fun work() {
+        var meaningless: Int = 0
+        val endTime = System.nanoTime() + (runtime * 1e6)
+        while (true) {
+            if(meaningless % 1000000 == 0){
+                if (System.nanoTime() > endTime) return
+            }
+            meaningless += 1
+        }
+    }
+}
+
+class Workload3(runtime: Int) : AbstractWorkload(runtime){
+    override fun work() {
+        var meaningless: Int = 0
+        val endTime = System.nanoTime() + (runtime * 1e6)
+        while (true) {
+            if(meaningless % 1000000 == 0){
+                if (System.nanoTime() > endTime) return
+            }
+            meaningless += 1
+        }
+    }
+}
+
+class SleepWorkload(runtime: Int) : AbstractWorkload(runtime){
+    override fun work() {
+        Thread.sleep(runtime.toLong())
     }
 }

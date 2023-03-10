@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import land.erikblok.busyworker.ThreadController.RandomThreadController
 import land.erikblok.busyworker.ThreadController.BusyThreadController
 import land.erikblok.busyworker.ui.theme.BusyWorkerTheme
-import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     lateinit var tc: BusyThreadController
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Column() {
+                    Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
                         BusyThreadStartComponents(tc)
                         RandomThreadStartComponents(rtc)
                     }
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun IntegerTextField(
     isValid: Boolean,
-    onValueChange: ((Long?) -> Unit),
+    onValueChange: ((Int?) -> Unit),
     placeholder: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
 ) {
@@ -62,7 +63,7 @@ fun IntegerTextField(
     return OutlinedTextField(
         value = textValue,
         onValueChange = { str: String ->
-            onValueChange(str.toLongOrNull())
+            onValueChange(str.toIntOrNull())
             textValue = str
         },
         placeholder = placeholder,
@@ -76,9 +77,9 @@ fun IntegerTextField(
 }
 
 @Composable
-fun DoubleTextField(
+fun FloatTextField(
     isValid: Boolean,
-    onValueChange: ((Double?) -> Unit),
+    onValueChange: ((Float?) -> Unit),
     placeholder: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
 ) {
@@ -87,7 +88,7 @@ fun DoubleTextField(
     return OutlinedTextField(
         value = textValue,
         onValueChange = { str: String ->
-            onValueChange(str.toDoubleOrNull())
+            onValueChange(str.toFloatOrNull())
             textValue = str
         },
         placeholder = placeholder,
@@ -103,12 +104,12 @@ fun DoubleTextField(
 
 @Composable
 fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
-    fun startThreads(duration: Long, numThreads: Int, workerId: Int) {
+    fun startThreads(duration: Int, numThreads: Int, workerId: Int) {
         tc?.startThreads(numThreads, duration, workerId)
     }
     Column {
-        var numThreads by remember { mutableStateOf<Long>(1) }
-        var currentRuntime by remember { mutableStateOf<Long>(0) }
+        var numThreads by remember { mutableStateOf<Int>(1) }
+        var currentRuntime by remember { mutableStateOf<Int>(0) }
         var threadsValid by remember { mutableStateOf(false) }
         var runtimeValid by remember { mutableStateOf(true) }
         val startWorkerWithId: (Int) -> Unit =
@@ -146,24 +147,26 @@ fun BusyThreadStartComponents(tc: BusyThreadController? = null) {
                 enabled = threadsValid && runtimeValid,
                 content = { Text("Start threads 1") },
             )
-            Spacer(modifier = Modifier.width(5.dp))
+        }
+        Row {
             Button(
                 onClick = { tc?.stopThreads() },
                 enabled = true,
                 content = { Text("Stop threads if running") },
             )
         }
-
     }
+
+
 }
 
 @Composable
 fun RandomThreadStartComponents(rtc: RandomThreadController? = null) {
-    var runtime by remember { mutableStateOf<Long>(1) }
-    var pauseProb by remember { mutableStateOf<Double>(0.5) }
+    var runtime by remember { mutableStateOf<Int>(1) }
+    var pauseProb by remember { mutableStateOf<Float>(0.5f) }
     var runtimeValid by remember { mutableStateOf(false) }
     var pauseProbValid by remember { mutableStateOf(false) }
-    var timestep by remember { mutableStateOf<Long>(100) }
+    var timestep by remember { mutableStateOf<Int>(100) }
     var timestepValid by remember { mutableStateOf(false) }
 
     IntegerTextField(isValid = runtimeValid, onValueChange = { time ->
@@ -183,7 +186,7 @@ fun RandomThreadStartComponents(rtc: RandomThreadController? = null) {
         label = { Text("Amount of time per random selection") }
     )
     Spacer(modifier = Modifier.height(5.dp))
-    DoubleTextField(isValid = pauseProbValid, onValueChange = { prob ->
+    FloatTextField(isValid = pauseProbValid, onValueChange = { prob ->
         pauseProbValid = (prob != null) && prob >= 0.0 && prob <= 1.0
         //use !! here because we just determined prob was non-null, kotlin
         //isn't able to figure that out though.
@@ -192,25 +195,24 @@ fun RandomThreadStartComponents(rtc: RandomThreadController? = null) {
         placeholder = { Text("pause probability") },
         label = { Text("Probability that the thread will sleep instead of selecting a workload") })
     Spacer(modifier = Modifier.height(5.dp))
-    Row() {
-        Button(
-            onClick = {
-                rtc?.startThreads(
-                    timestep = timestep,
-                    pauseProb = pauseProb,
-                    runtime = runtime
-                )
-            },
-            enabled = timestepValid && pauseProbValid && runtimeValid,
-            content = { Text("Start random workload") }
-        )
-        Spacer(modifier = Modifier.height(5.dp))
-        Button(
-            onClick = { rtc?.stopThreads() },
-            enabled = true,
-            content = { Text("Stop random threads if running") }
-        )
-    }
+    Button(
+        onClick = {
+            rtc?.startThreads(
+                timestep = timestep,
+                pauseProb = pauseProb,
+                runtime = runtime * 1000
+            )
+        },
+        enabled = timestepValid && pauseProbValid && runtimeValid,
+        content = { Text("Start random workload") }
+    )
+    Spacer(modifier = Modifier.height(5.dp))
+    Button(
+        onClick = { rtc?.stopThreads() },
+        enabled = true,
+        content = { Text("Stop random threads if running") }
+    )
+
 
 }
 
