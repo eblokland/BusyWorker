@@ -14,25 +14,40 @@ val RAND_TAG = "RANDOM_WORKER"
  *  timestep.
  *  @param runtime total runtime of the randomworker including pauses, in millis.
  */
-class RandomWorker(val timestep: Int, val runtime: Int, val pauseProb: Float) :
+class RandomWorker(
+    val timestep: Int,
+    val runtime: Int,
+    val pauseProb: Float,
+    private var num_classes: Int
+) :
     AbstractWorker() {
     @Volatile
-    var stop: Boolean = false
-    val workloads: MutableList<AbstractWorkload> = ArrayList()
-    val sleepLoad = SleepWorkload(timestep)
-    val randomGenerator = Random()
-    val runtimeTotal: MutableMap<AbstractWorkload, Long> = HashMap()
+    private var stop: Boolean = false
+    private val workloads: MutableList<AbstractWorkload> = ArrayList()
+    private val sleepLoad = SleepWorkload(timestep)
+    private val randomGenerator = Random()
+    private val runtimeTotal: MutableMap<AbstractWorkload, Long> = HashMap()
 
     init {
-        workloads.addAll(arrayOf(Workload1(timestep), Workload2(timestep), Workload3(timestep)))
+        workloads.addAll(
+            arrayOf(
+                Workload1(timestep),
+                Workload2(timestep),
+                Workload3(timestep),
+                Workload4(timestep),
+                Workload5(timestep),
+                Workload6(timestep)
+            )
+        )
         for (load in workloads) {
             runtimeTotal[load] = 0
         }
         runtimeTotal[sleepLoad] = 0
+        num_classes = workloads.size.coerceAtMost(num_classes)
     }
 
     override fun stopThread() {
-        if(!isAlive) return
+        if (!isAlive) return
         stop = true
         Log.i("early stopped!", RAND_TAG)
     }
@@ -49,23 +64,31 @@ class RandomWorker(val timestep: Int, val runtime: Int, val pauseProb: Float) :
         printLogs()
     }
 
-    fun pickWorker(): AbstractWorkload {
+    /**
+     * Picks a workload from the list of available workloads, or sleeps.
+     */
+    private fun pickWorker(): AbstractWorkload {
+        // first decide whether or not to sleep, with probability pauseProb
         val pause = randomGenerator.nextDouble() < pauseProb
         if (pause) {
             return sleepLoad
         }
-        val id = randomGenerator.nextInt(workloads.size)
+        // If we don't sleep, pick a random workload.
+        val id = randomGenerator.nextInt(num_classes)
         return workloads[id]
     }
 
-    fun printLogs() {
-        for (wl in workloads) {
+    private fun printLogs() {
+        fun printLog(aw: AbstractWorkload, runtime: Long) {
+            Log.i(RAND_TAG, "${aw::class.simpleName}, $runtime")
+        }
+
+        Log.i(RAND_TAG, "NUM CLASSES: $num_classes")
+        Log.i(RAND_TAG, "Classname, runtime (ns)")
+        for (i in 0 until num_classes) {
+            val wl = workloads[i]
             printLog(wl, runtimeTotal[wl] ?: 0)
         }
         printLog(sleepLoad, runtimeTotal[sleepLoad] ?: 0)
-    }
-
-    fun printLog(aw: AbstractWorkload, runtime: Long) {
-        Log.i("${aw::class.simpleName} ran for $runtime nanoseconds", RAND_TAG)
     }
 }

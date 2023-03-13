@@ -189,6 +189,8 @@ fun RandomThreadStartComponents(ctx: Context? = null) {
     var pauseProbValid by remember { mutableStateOf(false) }
     var timestep by remember { mutableStateOf(100) }
     var timestepValid by remember { mutableStateOf(false) }
+    var numClasses by remember { mutableStateOf(3) }
+    var numClassesValid by remember { mutableStateOf(false) }
 
     IntegerTextField(isValid = runtimeValid, onValueChange = { time ->
         runtimeValid = time != null
@@ -216,6 +218,16 @@ fun RandomThreadStartComponents(ctx: Context? = null) {
         placeholder = { Text("pause probability") },
         label = { Text("Probability that the thread will sleep instead of selecting a workload") })
     Spacer(modifier = Modifier.height(5.dp))
+    IntegerTextField(
+        isValid = numClassesValid,
+        onValueChange = { classes ->
+            numClassesValid = classes != null && classes >= 1
+            numClasses = if (numClassesValid) classes!! else numClasses
+        },
+        placeholder = { Text("num classes") },
+        label = { Text("Number of classes to split load between") },
+    )
+    Spacer(modifier = Modifier.height(5.dp))
     Button(
         onClick = {
             if (ctx != null) {
@@ -224,6 +236,7 @@ fun RandomThreadStartComponents(ctx: Context? = null) {
                     this.putExtra(TIMESTEP, timestep)
                     this.putExtra(RUNTIME, runtime)
                     this.putExtra(SLEEP_PROB, pauseProb)
+                    this.putExtra(NUM_CLASSES, numClasses)
                 }.also {
                     ctx.startService(it)
                 }

@@ -24,8 +24,6 @@ class BusyWorkerService : Service() {
     private lateinit var rtc: RandomThreadController
     private lateinit var tc: BusyThreadController
 
-    private var busyWorkerRunning = false
-    private var randomWorkerRunning = false
 
     private val runningIds: MutableSet<Int> = HashSet()
 
@@ -60,7 +58,6 @@ class BusyWorkerService : Service() {
                 else -> false
             }
         }
-        Log.i(TAG, "started")
         if (runningIds.isEmpty()) {
             Log.i(TAG, "didn't have anything to do, stopping")
             stopSelf()
@@ -95,8 +92,7 @@ class BusyWorkerService : Service() {
             return
         }
         runningIds.add(startId)
-        tc.startThreads(numThreads, runtime, workerId, stopCallback = {busyWorkerRunning = false; checkStop(startId)})
-        busyWorkerRunning = true
+        tc.startThreads(numThreads, runtime, workerId, stopCallback = {checkStop(startId)})
     }
     private fun stopBusyWorker() {
         tc.stopThreads()
@@ -108,13 +104,13 @@ class BusyWorkerService : Service() {
         val timestep = intent.getIntExtra(TIMESTEP, -1)
         val sleepProb = intent.getFloatExtra(SLEEP_PROB, -1.0f)
         val runtime = intent.getIntExtra(RUNTIME, -1)
-        if (timestep == -1 || runtime == -1 || sleepProb == -1.0f){
+        val numClasses = intent.getIntExtra(NUM_CLASSES, -1)
+        if (timestep == -1 || runtime == -1 || sleepProb == -1.0f || numClasses == -1){
             Log.e(TAG, "Invalid parameters provided to random worker, not starting.")
             return
         }
         runningIds.add(startId)
-        rtc.startThreads(timestep, sleepProb, runtime * 1000, stopCallback = {randomWorkerRunning = false; checkStop(startId)})
-        randomWorkerRunning = true
+        rtc.startThreads(timestep, sleepProb, runtime * 1000, numClasses = numClasses, stopCallback = {checkStop(startId)})
     }
 
     private fun setForeground(){
