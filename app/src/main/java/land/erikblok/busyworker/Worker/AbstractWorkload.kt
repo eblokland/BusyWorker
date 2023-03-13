@@ -6,13 +6,29 @@ package land.erikblok.busyworker
  * aren't actually doing anything different.  Since the workloads should be the same, this abstract class
  * will actually provide a basic workload.
  */
-abstract class AbstractWorkload(val runtime: Int) : Thread(){
+abstract class AbstractWorkload(val runtime: Int){
     abstract fun work()
 
 }
 
 //these are all copies that won't get optimized out.
 const val CHECK_INTERVAL = 1000000
+
+/**
+ * Basic workload for the workload classes.
+ * Using inline here forces kotlin to inline this workload into the classes, which
+ * will make it visible when using stack sampling.
+ */
+private inline fun work(runtime: Int){
+    var meaningless: Int = 0
+    val endTime = System.nanoTime() + (runtime * 1e6)
+    while (true) {
+        if(meaningless % CHECK_INTERVAL == 0){
+            if (System.nanoTime() > endTime) return
+        }
+        meaningless += 1
+    }
+}
 
 class Workload1(runtime: Int) : AbstractWorkload(runtime){
     /** Toy workload that will, hopefully, load the ALU relatively hard.
@@ -21,79 +37,37 @@ class Workload1(runtime: Int) : AbstractWorkload(runtime){
      * that it spends significant time stalling to wait for System.nanoTime()
     */
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
 class Workload2(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
 class Workload3(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
 class Workload4(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
 class Workload5(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
 class Workload6(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        var meaningless: Int = 0
-        val endTime = System.nanoTime() + (runtime * 1e6)
-        while (true) {
-            if(meaningless % CHECK_INTERVAL == 0){
-                if (System.nanoTime() > endTime) return
-            }
-            meaningless += 1
-        }
+        work(runtime)
     }
 }
 
