@@ -40,13 +40,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-    }
-
-
 }
 
 //Use onValueChange to receive the new integer, if there is one.
@@ -104,7 +97,6 @@ fun FloatTextField(
 
 @Composable
 fun BusyThreadStartComponents(ctx: Context? = null) {
-    // var threadsRunning by remember { mutableStateOf(tc?.isActive ?: false) }
     fun startThreads(duration: Int, numThreads: Int, workerId: Int) {
         if (ctx != null) {
             Intent(ctx, BusyWorkerService::class.java).apply {
@@ -182,7 +174,6 @@ fun BusyThreadStartComponents(ctx: Context? = null) {
 
 @Composable
 fun RandomThreadStartComponents(ctx: Context? = null) {
-    // var randomRunning by remember { mutableStateOf(rtc?.isActive ?: false) }
     var runtime by remember { mutableStateOf(1) }
     var pauseProb by remember { mutableStateOf(0.5f) }
     var runtimeValid by remember { mutableStateOf(false) }
@@ -262,12 +253,6 @@ fun RandomThreadStartComponents(ctx: Context? = null) {
 
 
 }
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
 @Preview(showBackground = true)
 @Composable
 fun RandomPreview() {
