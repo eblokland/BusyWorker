@@ -7,7 +7,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 val RAND_TAG = "RANDOM_WORKER"
-
+private val MAGIC_REFERENCE_NUM = 5
 /**
  * @param timestep millis between workload selection
  * @param pauseProb probability from 0 to 1 determining how likely the worker is to pause for a
@@ -23,13 +23,13 @@ class RandomWorker(
     AbstractWorker() {
     @Volatile
     private var stop: Boolean = false
-    private val workloads: MutableList<AbstractWorkload> = ArrayList()
+    private val workloads: List<AbstractWorkload>
     private val sleepLoad = SleepWorkload(timestep)
     private val randomGenerator = Random()
     private val runtimeTotal: MutableMap<AbstractWorkload, Long> = HashMap()
 
     init {
-        workloads.addAll(
+        val base_workloads =
             arrayOf(
                 Workload1(timestep),
                 Workload2(timestep),
@@ -38,12 +38,32 @@ class RandomWorker(
                 Workload5(timestep),
                 Workload6(timestep)
             )
-        )
-        for (load in workloads) {
+
+        for (load in base_workloads) {
             runtimeTotal[load] = 0
         }
+
         runtimeTotal[sleepLoad] = 0
-        num_classes = workloads.size.coerceAtMost(num_classes)
+        num_classes = base_workloads.size.coerceAtMost(num_classes)
+
+        // We want a non-uniform random distribution, otherwise there's probably nothing to look at!.
+        // To do that, we'll copy the reference to each abstract workload some number of times.
+        // The number of extra references will be a random number from 0 to some magic number for now.
+        //also, go ahead and remove the extras.
+        workloads = ArrayList()
+
+        //ensure that the head of the array is each class in order.
+        for(i in 0 until num_classes){
+            workloads.add(base_workloads[i])
+        }
+
+        for (i in 0 until num_classes){
+            val numInserts = randomGenerator.nextInt(MAGIC_REFERENCE_NUM)
+            for (j in 0..numInserts){
+                workloads.add(base_workloads[i])
+            }
+        }
+
     }
 
     override fun stopThread() {
@@ -74,7 +94,7 @@ class RandomWorker(
             return sleepLoad
         }
         // If we don't sleep, pick a random workload.
-        val id = randomGenerator.nextInt(num_classes)
+        val id = randomGenerator.nextInt(workloads.size)
         return workloads[id]
     }
 
