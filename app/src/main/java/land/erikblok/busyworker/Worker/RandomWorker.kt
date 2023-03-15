@@ -2,6 +2,7 @@ package land.erikblok.busyworker.Worker
 
 import android.util.Log
 import land.erikblok.busyworker.*
+import land.erikblok.busyworker.Worker.workloads.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -29,7 +30,7 @@ class RandomWorker(
     private val runtimeTotal: MutableMap<AbstractWorkload, Long> = HashMap()
 
     init {
-        val base_workloads =
+        val baseWorkloads =
             arrayOf(
                 Workload1(timestep),
                 Workload2(timestep),
@@ -39,12 +40,12 @@ class RandomWorker(
                 Workload6(timestep)
             )
 
-        for (load in base_workloads) {
+        for (load in baseWorkloads) {
             runtimeTotal[load] = 0
         }
 
         runtimeTotal[sleepLoad] = 0
-        num_classes = base_workloads.size.coerceAtMost(num_classes)
+        num_classes = baseWorkloads.size.coerceAtMost(num_classes)
 
         // We want a non-uniform random distribution, otherwise there's probably nothing to look at!.
         // To do that, we'll copy the reference to each abstract workload some number of times.
@@ -54,13 +55,13 @@ class RandomWorker(
 
         //ensure that the head of the array is each class in order.
         for(i in 0 until num_classes){
-            workloads.add(base_workloads[i])
+            workloads.add(baseWorkloads[i])
         }
 
         for (i in 0 until num_classes){
             val numInserts = randomGenerator.nextInt(MAGIC_REFERENCE_NUM)
             for (j in 0..numInserts){
-                workloads.add(base_workloads[i])
+                workloads.add(baseWorkloads[i])
             }
         }
 

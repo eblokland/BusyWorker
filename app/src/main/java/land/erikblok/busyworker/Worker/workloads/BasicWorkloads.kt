@@ -1,34 +1,31 @@
-package land.erikblok.busyworker
+package land.erikblok.busyworker.Worker.workloads
 
-/**
- * Workload to be used by some implementation of AbstractWorker.
- * Since ART might inline stuff, these workloads should all be their own class, even if they
- * aren't actually doing anything different.  Since the workloads should be the same, this abstract class
- * will actually provide a basic workload.
- */
-abstract class AbstractWorkload(val runtime: Int){
-    abstract fun work()
+import land.erikblok.busyworker.AbstractWorkload
 
-}
 
-//these are all copies that won't get optimized out.
 const val CHECK_INTERVAL = 1000000
 
 /**
  * Basic workload for the workload classes.
  * Using inline here forces kotlin to inline this workload into the classes, which
  * will make it visible when using stack sampling.
+ *
+ * @param runtime amount of time in milliseconds to run for
+ * @param pleaseDontDedupeMe prevents this method from being deduped, allowing it
+ * to show up in stack traces
  */
-private inline fun work(runtime: Int){
+private inline fun work(runtime: Int, pleaseDontDedupeMe: Int): Int{
     var meaningless: Int = 0
     val endTime = System.nanoTime() + (runtime * 1e6)
     while (true) {
         if(meaningless % CHECK_INTERVAL == 0){
-            if (System.nanoTime() > endTime) return
+            if (System.nanoTime() > endTime) return meaningless
         }
-        meaningless += 1
+        meaningless += pleaseDontDedupeMe
     }
 }
+
+//these are all copies that won't get optimized out.
 
 class Workload1(runtime: Int) : AbstractWorkload(runtime){
     /** Toy workload that will, hopefully, load the ALU relatively hard.
@@ -37,42 +34,36 @@ class Workload1(runtime: Int) : AbstractWorkload(runtime){
      * that it spends significant time stalling to wait for System.nanoTime()
     */
     override fun work() {
-        work(runtime)
+        work(runtime, 1)
     }
 }
 
 class Workload2(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        work(runtime)
+        work(runtime, 2)
     }
 }
 
 class Workload3(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        work(runtime)
+        work(runtime, 3)
     }
 }
 
 class Workload4(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        work(runtime)
+        work(runtime, 4)
     }
 }
 
 class Workload5(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        work(runtime)
+        work(runtime, 5)
     }
 }
 
 class Workload6(runtime: Int) : AbstractWorkload(runtime){
     override fun work() {
-        work(runtime)
-    }
-}
-
-class SleepWorkload(runtime: Int) : AbstractWorkload(runtime){
-    override fun work() {
-        Thread.sleep(runtime.toLong())
+        work(runtime, 6)
     }
 }
