@@ -1,4 +1,4 @@
-package land.erikblok.busyworker.Workers.MemberIgnoringMethod;
+package land.erikblok.busyworker.Workers.ABTests.MemberIgnoringMethod;
 
 
 /**
@@ -12,7 +12,7 @@ public class MemberIgnoringMethodWorkload extends AbstractMemberIgnoringMethodWo
 
     @Override
     public void work() {
-        for (int i = 0; i < workAmount; i++) {
+        for (int i = 0; i < iterations; i++) {
             lonelyMember = memberIgnoringMethod(lonelyMember);
         }
     }

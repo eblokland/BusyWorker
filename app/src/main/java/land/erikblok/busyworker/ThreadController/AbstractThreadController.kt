@@ -42,6 +42,7 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
      * @param stopCallback Callback to be called when workload is done/stopped
      */
     open fun startThreads(stopCallback: (() -> Unit)? = null) {
+        cleanUpThreads()
         this.stopCallback = stopCallback
         isActive = true
     }

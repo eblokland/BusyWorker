@@ -48,7 +48,7 @@ class RandomThreadController(
      * @param stopCallback Optional callback that will be executed if the workload is stopped or canceled
      */
     override fun startThreads(stopCallback: (() -> Unit)?) {
-        cleanUpThreads()
+        super.startThreads(stopCallback)
         threadList.add(
             RandomWorker(
                 timestep = timestep,
@@ -62,7 +62,6 @@ class RandomThreadController(
         if (runtimeMillis > 0) {
             setTimer(runtimeMillis)
         }
-        super.startThreads(stopCallback)
     }
 
 

@@ -40,7 +40,8 @@ class BusyThreadController(ctx: Context, val numThreads: Int, val runtime: Int, 
      * @param stopCallback Optional callback to be called when threads finish or are killed.
      */
     override fun startThreads(stopCallback: (() -> Unit)?) {
-        cleanUpThreads()
+        super.startThreads(stopCallback)
+
         for (i in 1..numThreads) {
             threadList.add(getWorker(workerId))
         }
@@ -50,7 +51,6 @@ class BusyThreadController(ctx: Context, val numThreads: Int, val runtime: Int, 
             wakeLock?.acquire((runtime + 1000).toLong())
             handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, runtime.toLong())
         }
-        super.startThreads(stopCallback)
     }
 
 
