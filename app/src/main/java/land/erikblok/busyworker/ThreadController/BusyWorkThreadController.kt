@@ -1,17 +1,37 @@
 package land.erikblok.busyworker.ThreadController
 
 import android.content.Context
-import land.erikblok.busyworker.Worker.AbstractWorker
-import land.erikblok.busyworker.Worker.AlsoAVeryHardWorker
-import land.erikblok.busyworker.Worker.VeryHardWorker
-
+import android.content.Intent
+import android.util.Log
+import land.erikblok.busyworker.TAG
+import land.erikblok.busyworker.Workers.AbstractWorker
+import land.erikblok.busyworker.Workers.BusyWorker.AlsoAVeryHardWorker
+import land.erikblok.busyworker.Workers.BusyWorker.VeryHardWorker
+import land.erikblok.busyworker.constants.NUM_THREADS
+import land.erikblok.busyworker.constants.RUNTIME
+import land.erikblok.busyworker.constants.WORKER_ID
 
 /**
  * Busy thread controller class, that will control execution of one or more runs of busywork threads.
  * @param ctx Context necessary to set up a handler.
  */
-class BusyThreadController(ctx: Context) : AbstractThreadController(ctx, "busyworker:busythreadcontroller") {
+class BusyThreadController(ctx: Context, val numThreads: Int, val runtime: Int, val workerId: Int = 0,) :
+    AbstractThreadController(ctx, "busyworker:busythreadcontroller") {
 
+    companion object : ThreadControllerBuilderInterface<BusyThreadController>{
+        const val ACTION_STARTBUSY = "land.erikblok.action.START_BUSY"
+        const val ACTION_STOPBUSY = "land.erikblok.action.STOP_BUSY"
+        override fun getControllerFromIntent(ctx: Context, intent: Intent) : BusyThreadController? {
+            val runtime = intent.getIntExtra(RUNTIME, -1)
+            val numThreads = intent.getIntExtra(NUM_THREADS, -1)
+            val workerId = intent.getIntExtra(WORKER_ID, -1)
+            if (runtime == -1 || numThreads == -1 || workerId == -1) {
+                Log.e(TAG, "Invalid parameters provided to busy worker")
+                return null
+            }
+            return BusyThreadController(ctx, numThreads, runtime, workerId)
+        }
+    }
     /**
      * Starts one or more busy work threads, that will run some math ops.
      * @param numThreads Number of threads to start
@@ -19,9 +39,8 @@ class BusyThreadController(ctx: Context) : AbstractThreadController(ctx, "busywo
      * @param workerId Selects one of (currently) two workers, with id 0 and 1 respectively.
      * @param stopCallback Optional callback to be called when threads finish or are killed.
      */
-    fun startThreads(numThreads: Int, runtime: Int, workerId: Int = 0, stopCallback: (() -> Unit)? = null) {
+    override fun startThreads(stopCallback: (() -> Unit)?) {
         cleanUpThreads()
-
         for (i in 1..numThreads) {
             threadList.add(getWorker(workerId))
         }
@@ -31,7 +50,7 @@ class BusyThreadController(ctx: Context) : AbstractThreadController(ctx, "busywo
             wakeLock?.acquire((runtime + 1000).toLong())
             handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, runtime.toLong())
         }
-        startThreads(stopCallback)
+        super.startThreads(stopCallback)
     }
 
 

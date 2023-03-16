@@ -1,11 +1,43 @@
 package land.erikblok.busyworker.ThreadController
 
 import android.content.Context
-import land.erikblok.busyworker.Worker.AbstractWorker
-import land.erikblok.busyworker.Worker.RandomWorker
+import android.content.Intent
+import android.util.Log
+import land.erikblok.busyworker.TAG
+import land.erikblok.busyworker.Workers.RandomWorker.RandomWorker
+import land.erikblok.busyworker.constants.NUM_CLASSES
+import land.erikblok.busyworker.constants.RUNTIME
+import land.erikblok.busyworker.constants.SLEEP_PROB
+import land.erikblok.busyworker.constants.TIMESTEP
 
 
-class RandomThreadController(ctx: Context) : AbstractThreadController(ctx, "busyworker:randomthreadcontroller"){
+class RandomThreadController(
+    ctx: Context,
+    private val timestep: Int,
+    private val pauseProb: Float,
+    private val runtimeMillis: Int,
+    private val numClasses: Int
+) : AbstractThreadController(ctx, "busyworker:randomthreadcontroller") {
+
+    companion object : ThreadControllerBuilderInterface<RandomThreadController> {
+        const val ACTION_STARTRANDOM = "land.erikblok.action.START_RANDOM"
+        const val ACTION_STOPRANDOM = "land.erikblok.action.STOP_RANDOM"
+
+        override fun getControllerFromIntent(
+            ctx: Context,
+            intent: Intent
+        ): RandomThreadController? {
+            val timestep = intent.getIntExtra(TIMESTEP, -1)
+            val pauseProb = intent.getFloatExtra(SLEEP_PROB, -1.0f)
+            val runtimeSeconds = intent.getIntExtra(RUNTIME, -1)
+            val numClasses = intent.getIntExtra(NUM_CLASSES, -1)
+            if (timestep == -1 || runtimeSeconds == -1 || pauseProb == -1.0f || numClasses == -1) {
+                Log.e(TAG, "Invalid parameters provided to random worker, not starting.")
+                return null
+            }
+            return RandomThreadController(ctx, timestep, pauseProb, runtimeSeconds * 1000, numClasses)
+        }
+    }
 
     /**
      * Starts a random workload
@@ -15,20 +47,23 @@ class RandomThreadController(ctx: Context) : AbstractThreadController(ctx, "busy
      * @param numClasses Number of classes to use for the workload
      * @param stopCallback Optional callback that will be executed if the workload is stopped or canceled
      */
-    fun startThreads(timestep: Int, pauseProb: Float, runtime: Int, numClasses:Int,  stopCallback: (() -> Unit)? = null){
+    override fun startThreads(stopCallback: (() -> Unit)?) {
         cleanUpThreads()
-        threadList.add(RandomWorker(timestep=timestep, pauseProb=pauseProb,runtime=runtime, num_classes=numClasses))
+        threadList.add(
+            RandomWorker(
+                timestep = timestep,
+                pauseProb = pauseProb,
+                runtimeMillis = runtimeMillis,
+                num_classes = numClasses
+            )
+        )
         threadList.forEach { it.start() }
         //if runtime is 0 or negative, run until stop button is pressed.
-        if (runtime > 0) {
-            wakeLock?.acquire((runtime + 1000).toLong())
-            //handler will kill the thread if it doesn't self-exit in time
-            handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime + 1000).toLong())
+        if (runtimeMillis > 0) {
+            setTimer(runtimeMillis)
         }
-        startThreads(stopCallback)
+        super.startThreads(stopCallback)
     }
-
-
 
 
 }

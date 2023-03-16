@@ -4,11 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Message
 import android.os.PowerManager
-import land.erikblok.busyworker.Worker.AbstractWorker
-import land.erikblok.busyworker.Worker.AlsoAVeryHardWorker
-import land.erikblok.busyworker.Worker.VeryHardWorker
-import java.util.*
-import kotlin.collections.ArrayList
+import land.erikblok.busyworker.Workers.AbstractWorker
 
 /**
  * Abstract class for thread controllers, handles setting up wakelock and stop timer.
@@ -45,10 +41,12 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
      * Base function to be called after threads are started, performs some bookkeeping
      * @param stopCallback Callback to be called when workload is done/stopped
      */
-    protected fun startThreads(stopCallback: (() -> Unit)?) {
+    open fun startThreads(stopCallback: (() -> Unit)? = null) {
         this.stopCallback = stopCallback
         isActive = true
     }
+
+
 
     /**
      * Cleans up running threads, if there are any.  Stops the threads and invokes stopCallback, if present.
@@ -65,6 +63,15 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
     }
 
     /**
+     * Sets a stop timer to ensure that the threads don't overrun their time by too much.
+     */
+    protected fun setTimer(runtime: Int){
+        wakeLock?.acquire((runtime + 1000).toLong())
+        //handler will kill the thread if it doesn't self-exit in time
+        handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime + 1000).toLong())
+    }
+
+    /**
      * Public function to stop the currently running workloads.
      * Will release the wakelock, clean up running threads, and set isActive to false
      */
@@ -76,3 +83,4 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
         isActive = false
     }
 }
+

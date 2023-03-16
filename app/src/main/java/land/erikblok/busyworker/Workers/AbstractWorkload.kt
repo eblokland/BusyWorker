@@ -1,4 +1,4 @@
-package land.erikblok.busyworker
+package land.erikblok.busyworker.Workers
 
 /**
  * Workload to be used by some implementation of AbstractWorker.
@@ -6,7 +6,7 @@ package land.erikblok.busyworker
  * aren't actually doing anything different.  Since the workloads should be the same, this abstract class
  * will actually provide a basic workload.
  */
-abstract class AbstractWorkload(val runtime: Int){
-    abstract fun work()
+interface AbstractWorkload{
+    fun work()
 }
 

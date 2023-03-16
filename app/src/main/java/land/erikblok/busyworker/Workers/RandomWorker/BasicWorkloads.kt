@@ -1,6 +1,6 @@
-package land.erikblok.busyworker.Worker.workloads
+package land.erikblok.busyworker.Workers.RandomWorker
 
-import land.erikblok.busyworker.AbstractWorkload
+import land.erikblok.busyworker.Workers.AbstractWorkload
 
 
 const val CHECK_INTERVAL = 1000000
@@ -27,7 +27,7 @@ private inline fun work(runtime: Int, pleaseDontDedupeMe: Int): Int{
 
 //these are all copies that won't get optimized out.
 
-class Workload1(runtime: Int) : AbstractWorkload(runtime){
+class Workload1(val runtime: Int) : AbstractWorkload {
     /** Toy workload that will, hopefully, load the ALU relatively hard.
      * Every so often (defined by CHECK_INTERVAL) it will check if it needs to exit.
      * CHECK_INTERVAL is set to something that should check relatively often, but not so often
@@ -38,31 +38,31 @@ class Workload1(runtime: Int) : AbstractWorkload(runtime){
     }
 }
 
-class Workload2(runtime: Int) : AbstractWorkload(runtime){
+class Workload2(val runtime: Int) : AbstractWorkload {
     override fun work() {
         work(runtime, 2)
     }
 }
 
-class Workload3(runtime: Int) : AbstractWorkload(runtime){
+class Workload3(val runtime: Int) : AbstractWorkload {
     override fun work() {
         work(runtime, 3)
     }
 }
 
-class Workload4(runtime: Int) : AbstractWorkload(runtime){
+class Workload4(val runtime: Int) : AbstractWorkload {
     override fun work() {
         work(runtime, 4)
     }
 }
 
-class Workload5(runtime: Int) : AbstractWorkload(runtime){
+class Workload5(val runtime: Int) : AbstractWorkload {
     override fun work() {
         work(runtime, 5)
     }
 }
 
-class Workload6(runtime: Int) : AbstractWorkload(runtime){
+class Workload6(val runtime: Int) : AbstractWorkload {
     override fun work() {
         work(runtime, 6)
     }

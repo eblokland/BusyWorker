@@ -1,24 +1,22 @@
-package land.erikblok.busyworker.Worker
+package land.erikblok.busyworker.Workers.RandomWorker
 
 import android.util.Log
-import land.erikblok.busyworker.*
-import land.erikblok.busyworker.Worker.workloads.*
+import land.erikblok.busyworker.Workers.AbstractWorker
+import land.erikblok.busyworker.Workers.AbstractWorkload
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
-val RAND_TAG = "RANDOM_WORKER"
-private val MAGIC_REFERENCE_NUM = 5
+const val RAND_TAG = "RANDOM_WORKER"
+private const val MAGIC_REFERENCE_NUM = 5
 /**
  * @param timestep millis between workload selection
  * @param pauseProb probability from 0 to 1 determining how likely the worker is to pause for a
  *  timestep.
- *  @param runtime total runtime of the randomworker including pauses, in millis.
+ *  @param runtimeMillis total runtime of the randomworker including pauses, in millis.
  */
 class RandomWorker(
-    val timestep: Int,
-    val runtime: Int,
-    val pauseProb: Float,
+    private val timestep: Int,
+    private val runtimeMillis: Int,
+    private val pauseProb: Float,
     private var num_classes: Int
 ) :
     AbstractWorker() {
@@ -74,7 +72,7 @@ class RandomWorker(
     }
 
     override fun run() {
-        val finalEndTime = System.nanoTime() + runtime * 1e6
+        val finalEndTime = System.nanoTime() + runtimeMillis * 1e6
         var loopStartTime: Long = 0
         while (System.nanoTime().also { loopStartTime = it } < finalEndTime && !stop) {
             val worker = pickWorker()

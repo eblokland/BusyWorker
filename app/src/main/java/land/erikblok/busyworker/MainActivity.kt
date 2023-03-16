@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import land.erikblok.busyworker.ThreadController.RandomThreadController
-import land.erikblok.busyworker.ThreadController.BusyThreadController
+import land.erikblok.busyworker.ThreadController.BusyThreadController.Companion.ACTION_STARTBUSY
+import land.erikblok.busyworker.ThreadController.RandomThreadController.Companion.ACTION_STARTRANDOM
 import land.erikblok.busyworker.constants.*
 import land.erikblok.busyworker.ui.theme.BusyWorkerTheme
 
@@ -112,8 +112,8 @@ fun BusyThreadStartComponents(ctx: Context? = null) {
 
     }
     Column {
-        var numThreads by remember { mutableStateOf<Int>(1) }
-        var currentRuntime by remember { mutableStateOf<Int>(0) }
+        var numThreads by remember { mutableStateOf(1) }
+        var currentRuntime by remember { mutableStateOf(0) }
         var threadsValid by remember { mutableStateOf(false) }
         var runtimeValid by remember { mutableStateOf(true) }
         val startWorkerWithId: (Int) -> Unit =
@@ -154,15 +154,7 @@ fun BusyThreadStartComponents(ctx: Context? = null) {
         }
         Row {
             Button(
-                onClick = {
-                    if (ctx != null) {
-                        Intent(ctx, BusyWorkerService::class.java).apply {
-                            this.action = ACTION_STOPBUSY
-                        }.also {
-                            ctx.startService(it)
-                        }
-                    }
-                },
+                onClick = { ctx?.sendStopIntent() },
                 enabled = true,
                 content = { Text("Stop threads if running") },
             )
@@ -174,6 +166,7 @@ fun BusyThreadStartComponents(ctx: Context? = null) {
 
 @Composable
 fun RandomThreadStartComponents(ctx: Context? = null) {
+
     var runtime by remember { mutableStateOf(1) }
     var pauseProb by remember { mutableStateOf(0.5f) }
     var runtimeValid by remember { mutableStateOf(false) }
@@ -238,15 +231,7 @@ fun RandomThreadStartComponents(ctx: Context? = null) {
     )
     Spacer(modifier = Modifier.height(5.dp))
     Button(
-        onClick = {
-            if (ctx != null) {
-                Intent(ctx, BusyWorkerService::class.java).apply {
-                    this.action = ACTION_STOPRANDOM
-                }.also {
-                    ctx.startService(it)
-                }
-            }
-        },
+        onClick = { ctx?.sendStopIntent() },
         enabled = true,
         content = { Text("Stop random threads if running") }
     )
@@ -268,3 +253,13 @@ fun DefaultPreview() {
         BusyThreadStartComponents()
     }
 }
+
+//region HELPERS
+private fun Context.sendStopIntent(){
+    Intent(this, BusyWorkerService::class.java).apply {
+        this.action = ACTION_STOP
+    }.also {
+        this.startService(it)
+    }
+}
+//endregion

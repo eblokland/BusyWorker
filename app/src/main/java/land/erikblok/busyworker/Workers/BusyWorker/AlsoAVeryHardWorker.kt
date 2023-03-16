@@ -1,7 +1,8 @@
-package land.erikblok.busyworker.Worker
+package land.erikblok.busyworker.Workers.BusyWorker
 
-val TAG = "VERYHARDWORKER"
-class VeryHardWorker() : AbstractWorker() {
+import land.erikblok.busyworker.Workers.AbstractWorker
+
+class AlsoAVeryHardWorker : AbstractWorker() {
     @Volatile var stop = false
 
 
@@ -11,7 +12,7 @@ class VeryHardWorker() : AbstractWorker() {
         //how long does it take to overflow this i wonder
         //maybe this does more math and less hitting ram
         while(/*(idontmatter % 100000 == 0.toLong()) &&*/ !stop){
-           // idontmatter = idontmatter * idontmatter + idontmatter
+            // idontmatter = idontmatter * idontmatter + idontmatter
             workload1()
             workload2()
         }

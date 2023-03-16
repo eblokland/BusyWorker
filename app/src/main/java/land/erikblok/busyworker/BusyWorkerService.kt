@@ -1,5 +1,6 @@
 package land.erikblok.busyworker
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,31 +10,33 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import land.erikblok.busyworker.ThreadController.BusyThreadController
-import land.erikblok.busyworker.ThreadController.RandomThreadController
-import land.erikblok.busyworker.constants.*
+import land.erikblok.busyworker.ThreadController.AbstractThreadController
+import land.erikblok.busyworker.ThreadController.ThreadControllerFactory
 
 const val FOREGROUND_NOT_ID = 1234
 const val TAG = "BUSYWORKERSERVICE"
 
+const val ACTION_STOP = "land.erikblok.action.STOP_WORKER"
+
+// I may want to let this run on older devices in the future, so let's keep the sdk check for now.
+@SuppressLint("ObsoleteSdkInt")
 class BusyWorkerService : Service() {
 
     private var foregroundRunning = false
     private lateinit var nc: NotificationChannel
 
-    private lateinit var rtc: RandomThreadController
-    private lateinit var tc: BusyThreadController
-
+    private val threadControllerFactory = ThreadControllerFactory()
+    private var activeThreadController: AbstractThreadController? = null
 
     private val runningIds: MutableSet<Int> = HashSet()
 
-    init{
+    init {
         if (Build.VERSION.SDK_INT >= 26) {
             nc = NotificationChannel("svc", "SamplerService", NotificationManager.IMPORTANCE_LOW)
         }
     }
 
-    inner class BusyWorkerBinder : Binder(){
+    inner class BusyWorkerBinder : Binder() {
         fun getService(): BusyWorkerService = this@BusyWorkerService
     }
 
@@ -41,23 +44,26 @@ class BusyWorkerService : Service() {
         return BusyWorkerBinder()
     }
 
-    override fun onCreate(){
-        Log.i(TAG, "called oncreate")
-        rtc = RandomThreadController(this)
-        tc = BusyThreadController(this)
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int{
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         setForeground()
-        intent?.let{
-             when (it.action){
-                ACTION_STARTBUSY -> runBusyWorker(it, startId)
-                ACTION_STOPBUSY -> stopBusyWorker()
-                ACTION_STARTRANDOM -> runRandomWorker(it, startId)
-                ACTION_STOPRANDOM -> stopRandomWorker()
-                else -> false
+        intent?.let {
+            when (it.action) {
+                ACTION_STOP -> {
+                    stopController()
+                }
+                //for now we don't have any other intents so we pass it along to the thread controller factory
+                else -> {
+                    val newController = threadControllerFactory.getThreadControllerFromIntent(this, intent)
+                    if (newController != null){
+                        startNewController(newController, startId)
+                    }
+                    else{
+                        Log.d(TAG, "Did not successfully parse intent with action ${intent.action}")
+                    }
+                }
             }
         }
+
         if (runningIds.isEmpty()) {
             Log.i(TAG, "didn't have anything to do, stopping")
             stopSelf()
@@ -65,10 +71,9 @@ class BusyWorkerService : Service() {
         return START_NOT_STICKY
     }
 
-    override fun onDestroy(){
+    override fun onDestroy() {
         foregroundRunning = false
-        rtc.stopThreads()
-        tc.stopThreads()
+        stopController()
         super.onDestroy()
     }
 
@@ -76,45 +81,30 @@ class BusyWorkerService : Service() {
      * If the given ID was the last one running, stop the service now.
      * @param startId ID to check and remove from the list of running IDs
      */
-    private fun checkStop(startId: Int){
+    private fun checkStop(startId: Int) {
         runningIds.remove(startId)
-        if (runningIds.isEmpty()){
+        if (runningIds.isEmpty()) {
             stopSelf()
         }
     }
 
-    private fun runBusyWorker(intent: Intent, startId: Int) {
-        val runtime = intent.getIntExtra(RUNTIME, -1)
-        val numThreads = intent.getIntExtra(NUM_THREADS, -1)
-        val workerId = intent.getIntExtra(WORKER_ID, -1)
-        if(runtime == -1 || numThreads == -1 || workerId == -1){
-            Log.e(TAG, "Invalid parameters provided to busy worker")
-            return
-        }
-        runningIds.add(startId)
-        tc.startThreads(numThreads, runtime, workerId, stopCallback = {checkStop(startId)})
-    }
-    private fun stopBusyWorker() {
-        tc.stopThreads()
-    }
-    private fun stopRandomWorker() {
-        rtc.stopThreads()
-    }
-    private fun runRandomWorker(intent: Intent, startId: Int) {
-        val timestep = intent.getIntExtra(TIMESTEP, -1)
-        val sleepProb = intent.getFloatExtra(SLEEP_PROB, -1.0f)
-        val runtime = intent.getIntExtra(RUNTIME, -1)
-        val numClasses = intent.getIntExtra(NUM_CLASSES, -1)
-        if (timestep == -1 || runtime == -1 || sleepProb == -1.0f || numClasses == -1){
-            Log.e(TAG, "Invalid parameters provided to random worker, not starting.")
-            return
-        }
-        runningIds.add(startId)
-        rtc.startThreads(timestep, sleepProb, runtime * 1000, numClasses = numClasses, stopCallback = {checkStop(startId)})
+    private fun stopController(){
+        Log.d(TAG, "Called stopController")
+        activeThreadController?.stopThreads()
+        activeThreadController = null
     }
 
-    private fun setForeground(){
-        if(!foregroundRunning){
+    private fun startNewController(controller: AbstractThreadController, startId: Int){
+        stopController()
+        runningIds.add(startId)
+        controller.startThreads{ checkStop(startId) }
+        activeThreadController = controller
+    }
+
+    //endregion
+
+    private fun setForeground() {
+        if (!foregroundRunning) {
             val notman = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
             if (Build.VERSION.SDK_INT >= 26) notman.createNotificationChannel(
                 nc
