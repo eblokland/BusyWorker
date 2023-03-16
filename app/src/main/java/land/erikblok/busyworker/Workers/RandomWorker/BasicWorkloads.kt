@@ -14,11 +14,14 @@ const val CHECK_INTERVAL = 1000000
  * @param pleaseDontDedupeMe prevents this method from being deduped, allowing it
  * to show up in stack traces
  */
+// Inlining is to show up in stack trace, not for efficiency
+@Suppress("NOTHING_TO_INLINE")
 private inline fun work(runtime: Int, pleaseDontDedupeMe: Int): Int{
     var meaningless: Int = 0
-    val endTime = System.nanoTime() + (runtime * 1e6)
+    val endTime = System.nanoTime() + (runtime * 1e6.toLong())
+    val offsetCheckInterval = CHECK_INTERVAL * pleaseDontDedupeMe
     while (true) {
-        if(meaningless % CHECK_INTERVAL == 0){
+        if(meaningless % offsetCheckInterval == 0){
             if (System.nanoTime() > endTime) return meaningless
         }
         meaningless += pleaseDontDedupeMe
