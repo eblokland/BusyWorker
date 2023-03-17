@@ -17,6 +17,7 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
     val wakeLock: PowerManager.WakeLock?
     val handler: Handler
     var stopCallback: (() -> Unit)? = null
+    @Volatile
     var isActive = false
 
     init {
@@ -39,20 +40,49 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
 
     /**
      * Base function to be called after threads are started, performs some bookkeeping
+     * It is now considered unsupported to call startThreads while isActive is true,
+     * so startThreads will immediately return.
      * @param stopCallback Callback to be called when workload is done/stopped
      */
+    @Synchronized
     open fun startThreads(stopCallback: (() -> Unit)? = null) {
-        cleanUpThreads()
+        if (isActive) return
         this.stopCallback = stopCallback
         isActive = true
     }
 
 
+    /**
+     * Sets a stop timer for time-based threads.
+     * Also acquires a wakelock that runs for 1 second beyond the timer.
+     * @param runtime Amount of time that the threads should run for.
+     */
+    protected fun setTimer(runtime: Int) {
+        wakeLock?.acquire((runtime + 1000).toLong())
+        handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime).toLong())
+    }
+
+    /**
+     * Public function to stop the currently running workloads.
+     * Will release the wakelock, clean up running threads, and set isActive to false
+     * As I found out the hard way, the Android system may be faster at killing the service than the
+     * service is at shutting itself down!  This function has been made synchronized
+     * to prevent this from happening, as stopThreads was getting pre-empted by itself :(
+     */
+    @Synchronized
+    fun stopThreads() {
+        if (!isActive) return
+        if (wakeLock?.isHeld == true) {
+            wakeLock.release()
+        }
+        cleanUpThreads()
+        isActive = false
+    }
 
     /**
      * Cleans up running threads, if there are any.  Stops the threads and invokes stopCallback, if present.
      */
-    protected fun cleanUpThreads() {
+    private fun cleanUpThreads() {
         threadList.forEach {
             if (it.isAlive) {
                 it.stopThread()
@@ -61,27 +91,7 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
         threadList.clear()
         stopCallback?.invoke()
         stopCallback = null
-    }
-
-    /**
-     * Sets a stop timer to ensure that the threads don't overrun their time by too much.
-     */
-    protected fun setTimer(runtime: Int){
-        wakeLock?.acquire((runtime + 1000).toLong())
-        //handler will kill the thread if it doesn't self-exit in time
-        handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime + 1000).toLong())
-    }
-
-    /**
-     * Public function to stop the currently running workloads.
-     * Will release the wakelock, clean up running threads, and set isActive to false
-     */
-    fun stopThreads() {
-        if (wakeLock?.isHeld == true) {
-            wakeLock.release()
-        }
-        cleanUpThreads()
-        isActive = false
+        handler.removeMessages(SUBJ_STOPTHREADS)
     }
 }
 

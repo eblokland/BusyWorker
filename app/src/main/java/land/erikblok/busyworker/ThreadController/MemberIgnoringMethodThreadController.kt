@@ -32,6 +32,6 @@ class MemberIgnoringMethodThreadController(
     }
 
     override fun startThreads(stopCallback: (() -> Unit)?) {
-        super.startThreads(stopCallback) { threadList.add(MIMWorker(useFixed, workAmount, useAsRuntime)) }
+        super.startThreads(stopCallback) { threadList.add(MIMWorker(useFixed, workAmount, useAsRuntime) { stopThreads() }) }
     }
 }

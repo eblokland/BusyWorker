@@ -4,10 +4,15 @@ import android.content.Context
 import android.content.Intent
 import land.erikblok.busyworker.Workers.ABTests.InternalSetter.InternalSetterWorker
 
-class InternalSetterThreadController(ctx: Context, workAmount: Int, useAsRuntime: Boolean, useFixed: Boolean) :
+class InternalSetterThreadController(
+    ctx: Context,
+    workAmount: Int,
+    useAsRuntime: Boolean,
+    useFixed: Boolean
+) :
     AbstractABThreadController(ctx, "busyworker:IS", workAmount, useAsRuntime, useFixed) {
 
-    companion object : ThreadControllerBuilderInterface<InternalSetterThreadController>{
+    companion object : ThreadControllerBuilderInterface<InternalSetterThreadController> {
         const val ACTION_START_IS = "land.erikblok.action.START_IS"
         override fun getControllerFromIntent(
             ctx: Context,
@@ -26,6 +31,10 @@ class InternalSetterThreadController(ctx: Context, workAmount: Int, useAsRuntime
     }
 
     override fun startThreads(stopCallback: (() -> Unit)?) {
-        super.startThreads(stopCallback) { threadList.add(InternalSetterWorker(workAmount, useAsRuntime, useFixed))}
+        super.startThreads(stopCallback) {
+            threadList.add(InternalSetterWorker(
+                workAmount, useAsRuntime, useFixed
+            ) { stopThreads() })
+        }
     }
 }

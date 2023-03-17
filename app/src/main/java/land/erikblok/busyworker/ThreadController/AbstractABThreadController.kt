@@ -3,7 +3,7 @@ package land.erikblok.busyworker.ThreadController
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import land.erikblok.busyworker.TAG
+//import land.erikblok.busyworker.TAG
 import land.erikblok.busyworker.constants.USE_AS_RUNTIME
 import land.erikblok.busyworker.constants.USE_FIXED
 import land.erikblok.busyworker.constants.WORK_AMOUNT
@@ -17,6 +17,7 @@ abstract class AbstractABThreadController(
 ) : AbstractThreadController(ctx, WLTag) {
 
     companion object {
+        protected val ABTAG = "AB_TEST_TC"
         @JvmStatic
         protected fun <T : AbstractABThreadController> parseIntent(
             intent: Intent,
@@ -25,7 +26,7 @@ abstract class AbstractABThreadController(
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
                 || !intent.hasExtra(USE_FIXED)
             ) {
-                Log.e(TAG, "missing extras for MIM, got " +
+                Log.e(ABTAG, "missing extras for MIM, got " +
                         "work amount: ${intent.hasExtra(WORK_AMOUNT)}" +
                         "UAR: ${intent.hasExtra(USE_AS_RUNTIME)}" +
                         "UF: ${intent.hasExtra(USE_FIXED)}")
@@ -33,18 +34,27 @@ abstract class AbstractABThreadController(
             }
 
             val workAmount = intent.getIntExtra(WORK_AMOUNT, -1)
+            if (workAmount == -1){
+                Log.e(ABTAG , "Probably received a long here, bailing as some devices will be really inefficient when given longs.")
+                return null
+            }
             val useFixed = intent.getBooleanExtra(USE_FIXED, false)
             val useAsRuntime = intent.getBooleanExtra(USE_AS_RUNTIME, false)
 
             return ctor(workAmount, useAsRuntime, useFixed)
-
         }
     }
 
     protected fun startThreads(stopCallback: (() -> Unit)?, addThreads: () -> Unit) {
-        super.startThreads(stopCallback)
+        super.startThreads {
+            stopCallback?.invoke()
+            Log.i(ABTAG, "Thread ended at: ${System.currentTimeMillis()}")
+        }
         addThreads()
-        threadList.forEach { it.start() }
+        threadList.forEach {
+            it.start()
+        }
         if (useAsRuntime) setTimer(workAmount)
     }
+
 }

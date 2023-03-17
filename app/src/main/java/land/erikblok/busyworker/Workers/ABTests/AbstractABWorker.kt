@@ -4,7 +4,7 @@ import land.erikblok.busyworker.Workers.AbstractWorker
 
 private const val CHECK_INTERVAL = 1000000
 
-abstract class AbstractABWorker(protected val workAmount: Int, protected val useAsRuntime: Boolean) : AbstractWorker() {
+abstract class AbstractABWorker(workAmount: Int, private val useAsRuntime: Boolean, private val onEnd: (() -> Unit)?) : AbstractWorker() {
 
     @Volatile
     private var stop = false
@@ -15,15 +15,14 @@ abstract class AbstractABWorker(protected val workAmount: Int, protected val use
 
     override fun run(){
         if (useAsRuntime){
-            val endTime = System.nanoTime() + workAmount * 1e6.toLong()
-            while(workAmount <= 0 || System.nanoTime() < endTime || stop){
+            while(!stop){
                 workload.work()
             }
         }
         else{
             workload.work()
         }
-
+        onEnd?.invoke()
     }
 
     override fun stopThread() {

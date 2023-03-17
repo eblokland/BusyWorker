@@ -84,6 +84,11 @@ class BusyWorkerService : Service() {
     private fun checkStop(startId: Int) {
         runningIds.remove(startId)
         if (runningIds.isEmpty()) {
+            // TODO: This causes a race condition where the system may actually shut down the service
+            // before the controller has finished.  Should refactor this system to avoid this.
+            // for now, the controllers have been made synchronized
+            // such that the system will block on shutting down the service until the controller
+            // has cleanly exited.
             stopSelf()
         }
     }
