@@ -8,9 +8,10 @@ class InternalSetterThreadController(
     ctx: Context,
     workAmount: Int,
     useAsRuntime: Boolean,
-    useFixed: Boolean
+    useFixed: Boolean,
+    outerLoopIterations: Int
 ) :
-    AbstractABThreadController(ctx, "busyworker:IS", workAmount, useAsRuntime, useFixed) {
+    AbstractABThreadController(ctx, "busyworker:IS", workAmount, useAsRuntime, useFixed, outerLoopIterations) {
 
     companion object : ThreadControllerBuilderInterface<InternalSetterThreadController> {
         const val ACTION_START_IS = "land.erikblok.action.START_IS"
@@ -18,12 +19,13 @@ class InternalSetterThreadController(
             ctx: Context,
             intent: Intent
         ): InternalSetterThreadController? {
-            return parseIntent(intent) { workAmount, useAsRuntime, useFixed ->
+            return parseIntent(intent) { workAmount, useAsRuntime, useFixed, outerLoopIterations ->
                 InternalSetterThreadController(
                     ctx,
                     workAmount,
                     useAsRuntime,
                     useFixed,
+                    outerLoopIterations,
                 )
             }
         }
@@ -33,7 +35,7 @@ class InternalSetterThreadController(
     override fun startThreads(stopCallback: (() -> Unit)?) {
         super.startThreads(stopCallback) {
             threadList.add(InternalSetterWorker(
-                workAmount, useAsRuntime, useFixed
+                workAmount, useAsRuntime, useFixed, outerLoopIterations,
             ) { stopThreads() })
         }
     }

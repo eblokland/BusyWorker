@@ -3,6 +3,7 @@ package land.erikblok.busyworker.ThreadController
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import land.erikblok.busyworker.constants.OUTER_LOOP_ITERATIONS
 //import land.erikblok.busyworker.TAG
 import land.erikblok.busyworker.constants.USE_AS_RUNTIME
 import land.erikblok.busyworker.constants.USE_FIXED
@@ -13,7 +14,8 @@ abstract class AbstractABThreadController(
     WLTag: String,
     val workAmount: Int,
     val useAsRuntime: Boolean,
-    val useFixed: Boolean
+    val useFixed: Boolean,
+    val outerLoopIterations: Int
 ) : AbstractThreadController(ctx, WLTag) {
 
     companion object {
@@ -21,7 +23,7 @@ abstract class AbstractABThreadController(
         @JvmStatic
         protected fun <T : AbstractABThreadController> parseIntent(
             intent: Intent,
-            ctor: (Int, Boolean, Boolean) -> T
+            ctor: (Int, Boolean, Boolean, Int) -> T
         ): T? {
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
                 || !intent.hasExtra(USE_FIXED)
@@ -40,8 +42,9 @@ abstract class AbstractABThreadController(
             }
             val useFixed = intent.getBooleanExtra(USE_FIXED, false)
             val useAsRuntime = intent.getBooleanExtra(USE_AS_RUNTIME, false)
+            val outerLoopIterations = intent.getIntExtra(OUTER_LOOP_ITERATIONS, 1)
 
-            return ctor(workAmount, useAsRuntime, useFixed)
+            return ctor(workAmount, useAsRuntime, useFixed, outerLoopIterations)
         }
     }
 
