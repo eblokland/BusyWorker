@@ -1,7 +1,8 @@
-package land.erikblok.busyworker.ThreadController
+package land.erikblok.busyworker.ThreadController.ABTesting
 
 import android.content.Context
 import android.content.Intent
+import land.erikblok.busyworker.ThreadController.ThreadControllerBuilderInterface
 import land.erikblok.busyworker.Workers.ABTests.MemberIgnoringMethod.MIMWorker
 
 class MemberIgnoringMethodThreadController(

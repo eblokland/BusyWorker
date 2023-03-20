@@ -1,8 +1,9 @@
-package land.erikblok.busyworker.ThreadController
+package land.erikblok.busyworker.ThreadController.ABTesting
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import land.erikblok.busyworker.ThreadController.AbstractThreadController
 import land.erikblok.busyworker.constants.OUTER_LOOP_ITERATIONS
 //import land.erikblok.busyworker.TAG
 import land.erikblok.busyworker.constants.USE_AS_RUNTIME
@@ -28,7 +29,8 @@ abstract class AbstractABThreadController(
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
                 || !intent.hasExtra(USE_FIXED)
             ) {
-                Log.e(ABTAG, "missing extras for MIM, got " +
+                Log.e(
+                    ABTAG, "missing extras for MIM, got " +
                         "work amount: ${intent.hasExtra(WORK_AMOUNT)}" +
                         "UAR: ${intent.hasExtra(USE_AS_RUNTIME)}" +
                         "UF: ${intent.hasExtra(USE_FIXED)}")

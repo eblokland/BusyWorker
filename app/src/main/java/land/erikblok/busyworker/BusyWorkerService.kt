@@ -100,7 +100,7 @@ class BusyWorkerService : Service() {
     }
 
     private fun startNewController(controller: AbstractThreadController, startId: Int){
-        stopController()
+        //stopController()
         runningIds.add(startId)
         controller.startThreads{ checkStop(startId) }
         activeThreadController = controller
