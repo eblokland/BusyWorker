@@ -15,7 +15,7 @@ class RandomThreadController(
     ctx: Context,
     private val timestep: Int,
     private val pauseProb: Float,
-    private val runtimeMillis: Int,
+    private val runtimeMillis: Long,
     private val numClasses: Int
 ) : AbstractThreadController(ctx, "busyworker:randomthreadcontroller") {
 
@@ -29,9 +29,9 @@ class RandomThreadController(
         ): RandomThreadController? {
             val timestep = intent.getIntExtra(TIMESTEP, -1)
             val pauseProb = intent.getFloatExtra(SLEEP_PROB, -1.0f)
-            val runtimeSeconds = intent.getIntExtra(RUNTIME, -1)
+            val runtimeSeconds = intent.getIntExtra(RUNTIME, -1).toLong()
             val numClasses = intent.getIntExtra(NUM_CLASSES, -1)
-            if (timestep == -1 || runtimeSeconds == -1 || pauseProb == -1.0f || numClasses == -1) {
+            if (timestep == -1 || runtimeSeconds == -1L || pauseProb == -1.0f || numClasses == -1) {
                 Log.e(TAG, "Invalid parameters provided to random worker, not starting.")
                 return null
             }
@@ -41,13 +41,9 @@ class RandomThreadController(
 
     /**
      * Starts a random workload
-     * @param timestep Time in milliseconds for a chosen sub-workload to run
-     * @param pauseProb Probability (from 0 to 1) of the workload sleeping on a timestep
-     * @param runtime Time in seconds for the total workload to run
-     * @param numClasses Number of classes to use for the workload
-     * @param stopCallback Optional callback that will be executed if the workload is stopped or canceled
      */
     override fun startThreads(stopCallback: (() -> Unit)?) {
+        if (isActive) throw IllegalThreadStateException()
         super.startThreads(stopCallback)
         threadList.add(
             RandomWorker(

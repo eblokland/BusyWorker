@@ -59,7 +59,7 @@ abstract class AbstractABThreadController(
         threadList.forEach {
             it.start()
         }
-        if (useAsRuntime) setTimer(workAmount)
+        if (useAsRuntime) setTimer(workAmount.toLong())
     }
 
 }

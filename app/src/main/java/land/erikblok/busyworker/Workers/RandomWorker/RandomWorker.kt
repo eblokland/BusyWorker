@@ -11,11 +11,12 @@ private const val MAGIC_REFERENCE_NUM = 5
  * @param timestep millis between workload selection
  * @param pauseProb probability from 0 to 1 determining how likely the worker is to pause for a
  *  timestep.
- *  @param runtimeMillis total runtime of the randomworker including pauses, in millis.
+ *  @param runtimeMillis total runtime of the randomworker including pauses, in millis.  A value of
+ *  <=0 means that the thread will run until stopped.
  */
 class RandomWorker(
     private val timestep: Int,
-    private val runtimeMillis: Int,
+    private val runtimeMillis: Long,
     private val pauseProb: Float,
     private var num_classes: Int
 ) :
@@ -72,9 +73,13 @@ class RandomWorker(
     }
 
     override fun run() {
-        val finalEndTime = System.nanoTime() + runtimeMillis * 1e6
+        val useTimer = runtimeMillis > 0
+        val finalEndTime = System.nanoTime() + runtimeMillis * 1000000
         var loopStartTime: Long = 0
-        while (System.nanoTime().also { loopStartTime = it } < finalEndTime && !stop) {
+
+        while (!stop) {
+            loopStartTime = System.nanoTime()
+            if(useTimer && loopStartTime > finalEndTime) break;
             val worker = pickWorker()
             worker.work()
             val elapsedNanos = System.nanoTime() - loopStartTime

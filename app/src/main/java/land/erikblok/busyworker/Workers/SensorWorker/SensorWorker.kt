@@ -15,6 +15,21 @@ class SensorWorker private constructor(
     private val workPeriodMillis: Long,
 ) : AbstractWorker() {
 
+    @Volatile
+    private var stop: Boolean = false
+    override fun stopThread() {
+        stop = true
+    }
+
+    override fun run() {
+        sm.registerListener(workload.sensorEventListener, sensor, samplingPeriodUs)
+        while (!stop) {
+            workload.work()
+            sleep(workPeriodMillis)
+        }
+        sm.unregisterListener(workload.sensorEventListener)
+    }
+
     companion object {
         fun getSensorWorkerForType(
             ctx: Context,
@@ -40,21 +55,4 @@ class SensorWorker private constructor(
             return SensorWorker(sensor, sm, workload, samplingPeriodUs, workPeriodMillis)
         }
     }
-
-    @Volatile
-    private var stop: Boolean = false
-    override fun stopThread() {
-        stop = true
-    }
-
-    override fun run() {
-        sm.registerListener(workload.sensorEventListener, sensor, samplingPeriodUs)
-        while (!stop) {
-            workload.work()
-            sleep(workPeriodMillis)
-        }
-        sm.unregisterListener(workload.sensorEventListener)
-    }
-
-
 }

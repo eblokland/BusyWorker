@@ -7,7 +7,7 @@ import land.erikblok.busyworker.constants.*
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-class SensorThreadController(ctx: Context, worker: SensorWorker, private val runtimeMillis: Int) :
+class SensorThreadController(ctx: Context, worker: SensorWorker, private val runtimeMillis: Long) :
     AbstractThreadController(
         ctx,
         "busyworker:SensorThreadController"
@@ -15,6 +15,12 @@ class SensorThreadController(ctx: Context, worker: SensorWorker, private val run
 
     init {
         threadList.add(worker)
+    }
+
+    override fun startThreads(stopCallback: (() -> Unit)?){
+        super.startThreads(stopCallback)
+        threadList.forEach { it.start() }
+        if (runtimeMillis > 0) setTimer(runtimeMillis)
     }
 
     companion object : ThreadControllerBuilderInterface<SensorThreadController> {
@@ -40,7 +46,7 @@ class SensorThreadController(ctx: Context, worker: SensorWorker, private val run
 
             val iterations = intent.getIntExtra(WORK_AMOUNT, 10000)
 
-            val runtime = intent.getIntExtra(RUNTIME, -1)
+            val runtime = intent.getIntExtra(RUNTIME, -1).toLong()
 
             val samplePeriodUs = ((1f / sampleRateHz.toFloat()) * 1000000).roundToInt()
             val workPeriodMs = ((1f / workRateHz.toFloat()) * 1000).roundToLong()
@@ -58,11 +64,5 @@ class SensorThreadController(ctx: Context, worker: SensorWorker, private val run
             return SensorThreadController(ctx, worker, runtime)
         }
 
-    }
-
-    override fun startThreads(stopCallback: (() -> Unit)?){
-        super.startThreads(stopCallback)
-        threadList.forEach { it.start() }
-        if (runtimeMillis > 0) setTimer(runtimeMillis)
     }
 }

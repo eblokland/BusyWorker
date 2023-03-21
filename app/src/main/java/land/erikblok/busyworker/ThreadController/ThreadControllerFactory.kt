@@ -8,6 +8,7 @@ import land.erikblok.busyworker.ThreadController.ABTesting.InternalSetterThreadC
 import land.erikblok.busyworker.ThreadController.ABTesting.InternalSetterThreadController.Companion.ACTION_START_IS
 import land.erikblok.busyworker.ThreadController.ABTesting.MemberIgnoringMethodThreadController
 import land.erikblok.busyworker.ThreadController.ABTesting.MemberIgnoringMethodThreadController.Companion.ACTION_START_MIM
+import land.erikblok.busyworker.ThreadController.BluetoothThreadController.Companion.ACTION_START_BLUETOOTH
 import land.erikblok.busyworker.ThreadController.BusyThreadController.Companion.ACTION_STARTBUSY
 import land.erikblok.busyworker.ThreadController.RandomThreadController.Companion.ACTION_STARTRANDOM
 import land.erikblok.busyworker.ThreadController.SensorThreadController.Companion.ACTION_START_SENSOR
@@ -21,6 +22,7 @@ class ThreadControllerFactory {
             ACTION_START_IS -> InternalSetterThreadController.getControllerFromIntent(ctx, intent)
             ACTION_START_FORLOOP -> ForLoopThreadController.getControllerFromIntent(ctx, intent)
             ACTION_START_SENSOR -> SensorThreadController.getControllerFromIntent(ctx, intent)
+            ACTION_START_BLUETOOTH -> BluetoothThreadController.getControllerFromIntent(ctx, intent)
             else -> null
         }
     }

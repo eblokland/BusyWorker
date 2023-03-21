@@ -57,9 +57,9 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
      * Also acquires a wakelock that runs for 1 second beyond the timer.
      * @param runtime Amount of time that the threads should run for.
      */
-    protected fun setTimer(runtime: Int) {
-        wakeLock?.acquire((runtime + 1000).toLong())
-        handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime).toLong())
+    protected fun setTimer(runtime: Long) {
+        wakeLock?.acquire((runtime + 1000))
+        handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime))
     }
 
     /**
