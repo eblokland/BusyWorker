@@ -7,4 +7,5 @@ class InternalSetterWorker(workAmount: Int, useAsRuntime: Boolean, useFixed: Boo
     override val workload =
         if (useFixed) FixedInternalSetterWorkload(numIterations)
         else InternalSetterWorkload(numIterations)
+
 }

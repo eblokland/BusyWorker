@@ -31,7 +31,7 @@ class RandomThreadController(
             val pauseProb = intent.getFloatExtra(SLEEP_PROB, -1.0f)
             val runtimeSeconds = intent.getIntExtra(RUNTIME, -1).toLong()
             val numClasses = intent.getIntExtra(NUM_CLASSES, -1)
-            if (timestep == -1 || runtimeSeconds == -1L || pauseProb == -1.0f || numClasses == -1) {
+            if (timestep == -1  || pauseProb == -1.0f || numClasses == -1) {
                 Log.e(TAG, "Invalid parameters provided to random worker, not starting.")
                 return null
             }

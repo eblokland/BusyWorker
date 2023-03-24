@@ -9,11 +9,11 @@ public class FixedMemberIgnoringMethodWorkload extends AbstractMemberIgnoringMet
     @Override
     public void work() {
             for (int i = 0; i < iterations; i++) {
-                lonelyMember = memberIgnoringMethod(lonelyMember);
+                lonelyMember = fixedMemberIgnoringMethod(lonelyMember);
             }
     }
 
-    private static int memberIgnoringMethod(int input) {
+    private static int fixedMemberIgnoringMethod(int input) {
         return input + 1;
     }
 }
