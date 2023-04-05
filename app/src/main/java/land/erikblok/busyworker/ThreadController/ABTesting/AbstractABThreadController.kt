@@ -27,7 +27,7 @@ abstract class AbstractABThreadController(
             ctor: (Int, Boolean, Boolean, Int) -> T
         ): T? {
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
-                || !intent.hasExtra(USE_FIXED)
+                || !intent.hasExtra(USE_FIXED) || !intent.hasExtra(OUTER_LOOP_ITERATIONS)
             ) {
                 Log.e(
                     ABTAG, "missing extras for MIM, got " +

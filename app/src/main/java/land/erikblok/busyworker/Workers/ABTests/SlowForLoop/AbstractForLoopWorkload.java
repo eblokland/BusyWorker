@@ -12,13 +12,11 @@ abstract public class AbstractForLoopWorkload extends AbstractABWorkload {
     private static final int MAX_SIZE = 10000000;
     public AbstractForLoopWorkload(int iterations) {
         super(iterations);
-        if(this.iterations > MAX_SIZE){
+        if(this.iterations > MAX_SIZE) {
             Log.w(TAG, "refusing to create a huge array, limiting size to " + MAX_SIZE);
-            arrayToIterate = new int[MAX_SIZE];
+            this.iterations = MAX_SIZE;
         }
-        else{
-            arrayToIterate = new int[this.iterations];
-        }
+        arrayToIterate = new int[this.iterations];
         //i'm sure this won't take forever...
         Arrays.fill(arrayToIterate, 1);
     }
