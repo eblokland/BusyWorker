@@ -17,7 +17,7 @@ public class MemberIgnoringMethodWorkload extends AbstractMemberIgnoringMethodWo
         }
     }
 
-    private int memberIgnoringMethod(int input) {
+    public int memberIgnoringMethod(int input) {
         return input + 1;
     }
 }
