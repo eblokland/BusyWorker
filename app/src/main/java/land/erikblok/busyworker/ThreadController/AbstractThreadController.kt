@@ -1,5 +1,6 @@
 package land.erikblok.busyworker.ThreadController
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Handler
 import android.os.Message
@@ -44,11 +45,13 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
      * so startThreads will immediately return.
      * @param stopCallback Callback to be called when workload is done/stopped
      */
+    @SuppressLint("WakelockTimeout") //I am intentionally abusing wakelocks here to ensure that the test does not get suspended.
     @Synchronized
     open fun startThreads(stopCallback: (() -> Unit)? = null) {
         if (isActive) return
         this.stopCallback = stopCallback
         isActive = true
+        wakeLock?.acquire()
     }
 
 
@@ -58,7 +61,7 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
      * @param runtime Amount of time that the threads should run for.
      */
     protected fun setTimer(runtime: Long) {
-        wakeLock?.acquire((runtime + 1000))
+        //if (wakeLock != null && !wakeLock.isHeld) wakeLock.acquire((runtime + 1000))
         handler.sendEmptyMessageDelayed(SUBJ_STOPTHREADS, (runtime))
     }
 
