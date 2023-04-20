@@ -4,18 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import land.erikblok.busyworker.ThreadController.AbstractThreadController
-import land.erikblok.busyworker.constants.OUTER_LOOP_ITERATIONS
+import land.erikblok.busyworker.constants.*
 //import land.erikblok.busyworker.TAG
-import land.erikblok.busyworker.constants.USE_AS_RUNTIME
-import land.erikblok.busyworker.constants.USE_FIXED
-import land.erikblok.busyworker.constants.WORK_AMOUNT
 
 abstract class AbstractABThreadController(
     ctx: Context,
     WLTag: String,
     val workAmount: Int,
     val useAsRuntime: Boolean,
-    val useFixed: Boolean,
     val outerLoopIterations: Int
 ) : AbstractThreadController(ctx, WLTag) {
 
@@ -24,16 +20,16 @@ abstract class AbstractABThreadController(
         @JvmStatic
         protected fun <T : AbstractABThreadController> parseIntent(
             intent: Intent,
-            ctor: (Int, Boolean, Boolean, Int) -> T
+            ctor: (Int, Boolean, Int, Int) -> T
         ): T? {
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
-                || !intent.hasExtra(USE_FIXED) || !intent.hasExtra(OUTER_LOOP_ITERATIONS)
+                || !intent.hasExtra(VARIANT) || !intent.hasExtra(OUTER_LOOP_ITERATIONS)
             ) {
                 Log.e(
-                    ABTAG, "missing extras for MIM, got " +
+                    ABTAG, "missing extras for AB testd, got " +
                         "work amount: ${intent.hasExtra(WORK_AMOUNT)}" +
                         "UAR: ${intent.hasExtra(USE_AS_RUNTIME)}" +
-                        "UF: ${intent.hasExtra(USE_FIXED)}")
+                        "variant: ${intent.hasExtra(VARIANT)}")
                 return null
             }
 
@@ -42,11 +38,11 @@ abstract class AbstractABThreadController(
                 Log.e(ABTAG , "Probably received a long here, bailing as some devices will be really inefficient when given longs.")
                 return null
             }
-            val useFixed = intent.getBooleanExtra(USE_FIXED, false)
+            val variant = intent.getIntExtra(VARIANT, 0)
             val useAsRuntime = intent.getBooleanExtra(USE_AS_RUNTIME, false)
             val outerLoopIterations = intent.getIntExtra(OUTER_LOOP_ITERATIONS, 1)
 
-            return ctor(workAmount, useAsRuntime, useFixed, outerLoopIterations)
+            return ctor(workAmount, useAsRuntime, variant, outerLoopIterations)
         }
     }
 
