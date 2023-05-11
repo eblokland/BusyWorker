@@ -23,10 +23,10 @@ abstract class AbstractABThreadController(
             ctor: (Int, Boolean, Int, Int) -> T
         ): T? {
             if (!intent.hasExtra(WORK_AMOUNT) || !intent.hasExtra(USE_AS_RUNTIME)
-                || !intent.hasExtra(VARIANT) || !intent.hasExtra(OUTER_LOOP_ITERATIONS)
+                || !intent.hasExtra(VARIANT)// || !intent.hasExtra(OUTER_LOOP_ITERATIONS)
             ) {
                 Log.e(
-                    ABTAG, "missing extras for AB testd, got " +
+                    ABTAG, "missing extras for AB test, got " +
                         "work amount: ${intent.hasExtra(WORK_AMOUNT)}" +
                         "UAR: ${intent.hasExtra(USE_AS_RUNTIME)}" +
                         "variant: ${intent.hasExtra(VARIANT)}")

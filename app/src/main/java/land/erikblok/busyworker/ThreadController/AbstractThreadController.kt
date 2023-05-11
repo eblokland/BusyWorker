@@ -12,7 +12,7 @@ import land.erikblok.busyworker.Workers.AbstractWorker
  * @param ctx Context used for setting up a handler.
  * @param WAKE_LOCK_TAG Tag used to acquire wakelocks, to be provided by a child class.
  */
-abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
+abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String, wakeLockType: Int = PowerManager.PARTIAL_WAKE_LOCK) {
     val SUBJ_STOPTHREADS = 238593
     val threadList: MutableList<AbstractWorker> = ArrayList()
     val wakeLock: PowerManager.WakeLock?
@@ -33,7 +33,7 @@ abstract class AbstractThreadController(ctx: Context, WAKE_LOCK_TAG: String) {
         })
         val powerMan = ctx.getSystemService(Context.POWER_SERVICE)
         wakeLock = if (powerMan is PowerManager) {
-            powerMan.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
+            powerMan.newWakeLock(wakeLockType, WAKE_LOCK_TAG)
         } else {
             null
         }

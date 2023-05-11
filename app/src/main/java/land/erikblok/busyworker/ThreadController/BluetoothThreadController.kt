@@ -2,6 +2,7 @@ package land.erikblok.busyworker.ThreadController
 
 import android.content.Context
 import android.content.Intent
+import android.os.PowerManager
 import android.util.Log
 import land.erikblok.busyworker.Workers.Bluetooth.BluetoothWorker
 import land.erikblok.busyworker.Workers.RandomWorker.RandomWorker
@@ -26,7 +27,8 @@ class BluetoothThreadController private constructor(
     private val runtimeMillis: Long = 0,
     btWorker: BluetoothWorker,
 ) :
-    AbstractThreadController(ctx, "busyworker:BluetoothThreadController") {
+    AbstractThreadController(ctx, "busyworker:BluetoothThreadController",
+        PowerManager.SCREEN_DIM_WAKE_LOCK) {
 
 
     init {
